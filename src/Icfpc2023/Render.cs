@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using SFML.Window;
 using SFML.Graphics;
 using SFML.System;
-using Icfpc2023.Gui;
 
 namespace Icfpc2023;
 public class Render
