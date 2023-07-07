@@ -67,7 +67,6 @@ namespace icfpc2023
             var request = new HttpRequestMessage(HttpMethod.Post, BaseAddress + "submission");
             request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
             
-            //using var multipartFormContent = new MultipartFormDataContent();
             var submission = new Submission{
                 ProblemId = problemId,
                 Contents = System.Text.Json.JsonSerializer.Serialize<Placements>(placements)
@@ -76,9 +75,6 @@ namespace icfpc2023
                 System.Text.Json.JsonSerializer.Serialize(submission),
                 System.Text.Encoding.UTF8,
                 "application/json");
-            // using var fileStreamContent = new StreamContent(File.OpenRead("./solutions/" + problemId.ToString() +".isl"));
-            // fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
-            // multipartFormContent.Add(fileStreamContent, name: "file", fileName: problemId.ToString() +".isl");
 
             request.Content = jsonContent;
 
