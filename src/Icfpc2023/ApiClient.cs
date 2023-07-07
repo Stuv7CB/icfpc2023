@@ -1,72 +1,73 @@
-using icfpc2023.Api;
-using System;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
+using System.Net.Http.Headers;
+using System.Text.Json;
+using Icfpc2023.Api;
 using Polly;
 
-namespace icfpc2023
+namespace Icfpc2023
 {
-    public static class ApiClient
+    public class ApiClient : IDisposable
     {
-        private static readonly HttpClient client = new HttpClient();
-        private const string BaseAddress = "https://api.icfpcontest.com/";
-        private static string Token;
         private const int MaxFileSize = 2861022;
 
-        static ApiClient()
+        private readonly HttpClient _client = new HttpClient
         {
-            using StreamReader sr = new("./apitoken");
-            Token = sr.ReadLine();
+            BaseAddress = new Uri("https://api.icfpcontest.com/"),
+        };
+
+        private readonly string _token;
+
+        public ApiClient(string token)
+        {
+            _token = token;
         }
 
-        public static async Task<List<Problem>> GetProblemsDefinition()
+        public async Task<List<Problem>> GetProblemsDefinition()
         {
-            var request = new HttpRequestMessage(HttpMethod.Get, BaseAddress + "problems");
+            var request = new HttpRequestMessage(HttpMethod.Get, "problems");
 
             using var response = await Policy
                                     .Handle<HttpRequestException>()
                                     .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt + 6)))
                                     .ExecuteAsync(async() =>
                                     {
-                                        var response = await client.SendAsync(request);
+                                        var response = await _client.SendAsync(request);
                                         response.EnsureSuccessStatusCode();
-                                        return response; 
+                                        return response;
                                     });
             var problemsNumber = System.Text.Json.JsonSerializer.Deserialize<Problems>(response.Content.ReadAsStream());
             if (!Directory.Exists("./problems"))
             {
                 Directory.CreateDirectory("./problems");
             }
-            var fCount = Directory.EnumerateFiles(new String("./problems"), "*", SearchOption.TopDirectoryOnly).Count();
+            var fCount = Directory.EnumerateFiles(new string("./problems"), "*", SearchOption.TopDirectoryOnly).Count();
             var problems = new List<Problem>();
             for (var i = 1; i <= fCount; ++i)
             {
-                problems.Add(System.Text.Json.JsonSerializer.Deserialize<Problem>(File.ReadAllText("./problems/" + i.ToString() + ".json")));
+                problems.Add(JsonSerializer.Deserialize<Problem>(File.ReadAllText("./problems/" + i.ToString() + ".json")));
             }
             for (var i = 1 + fCount; i <= problemsNumber.numberOfProblems; ++i)
             {
-                request = new HttpRequestMessage(HttpMethod.Get, BaseAddress + "problem?problem_id=" + i.ToString());
+                request = new HttpRequestMessage(HttpMethod.Get, "problem?problem_id=" + i);
                 using var problemResponse = await Policy
                                             .Handle<HttpRequestException>()
                                             .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt + 6)))
                                             .ExecuteAsync(async() =>
                                             {
-                                                var response = await client.SendAsync(request);
+                                                var response = await _client.SendAsync(request);
                                                 response.EnsureSuccessStatusCode();
-                                                return response; 
+                                                return response;
                                             });
                 var parsedResponse = System.Text.Json.JsonSerializer.Deserialize<ProblemRequest>(problemResponse.Content.ReadAsStream());
                 File.WriteAllText("./problems/" + i.ToString() + ".json", parsedResponse.Success);
-                problems.Add(System.Text.Json.JsonSerializer.Deserialize<Problem>(parsedResponse.Success));
+                problems.Add(JsonSerializer.Deserialize<Problem>(parsedResponse.Success));
             }
             return problems;
         }
-        public static async Task<String> Submit(uint problemId, Placements placements)
+        public async Task<string> Submit(uint problemId, Placements placements)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, BaseAddress + "submission");
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
-            
+            var request = new HttpRequestMessage(HttpMethod.Post, "submission");
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _token);
+
             var submission = new Submission{
                 ProblemId = problemId,
                 Contents = System.Text.Json.JsonSerializer.Serialize<Placements>(placements)
@@ -83,11 +84,16 @@ namespace icfpc2023
                                     .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt + 6)))
                                     .ExecuteAsync(async() =>
                                     {
-                                        var response = await client.SendAsync(request);
+                                        var response = await _client.SendAsync(request);
                                         response.EnsureSuccessStatusCode();
-                                        return response; 
+                                        return response;
                                     });
             return response.Content.ToString();
-        }  
+        }
+
+        public void Dispose()
+        {
+            _client.Dispose();
+        }
     }
 }
