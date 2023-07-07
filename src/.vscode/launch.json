@@ -11,7 +11,7 @@
             "preLaunchTask": "build",
             "program": "${workspaceFolder}/Icfpc2023/bin/Debug/net7.0/Icfpc2023.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/Icfpc2023",
+            "cwd": "${workspaceFolder}/Icfpc2023/bin/Debug/net7.0/",
             "console": "internalConsole",
             "stopAtEntry": false
         },
