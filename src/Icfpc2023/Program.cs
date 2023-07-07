@@ -13,6 +13,19 @@ internal static class Program
         var apiToken = Environment.GetEnvironmentVariable("API_TOKEN");
         using var apiClient = new ApiClient(apiToken);
         var problems = await apiClient.GetProblemsDefinition();
+
+         var render = new Render();
+        var renderTrhead = new Thread(new ThreadStart(render.run));
+        renderTrhead.Start();
+
+        //just an example
+        var pl = new Api.Placements{PlacementsList = new List<Api.Coords>()};
+        pl.PlacementsList.Add(new Api.Coords{
+            X = 33f,
+            Y = 55f
+        });
+        render.setData(problems.ElementAt(0), pl);
+        ///
         var problemId = 1;
 
         using var pBar = new ProgressBar(
