@@ -13,7 +13,8 @@ WASD/Arrows                     - movement
 Shift                           - faster movement
 Q/E                             - zoom
 U                                 - submit solutions
-Esc                             - close app";
+Esc                             - close app
+L                               - toggle legend";
     private Mutex mut = new Mutex();
     private View firstView = new View(new Vector2f(1024f, 768f), new Vector2f(512f, 384f));
     private RectangleShape room = new RectangleShape();
@@ -52,6 +53,7 @@ Esc                             - close app";
         bool submit = false;
         var movement = new Vector2f(0f, 0f);
         var zoom = 1f;
+        bool legend = true;
 
         var window = new RenderWindow(new VideoMode(1024 , 768), "icfpc2023");
         window.SetFramerateLimit(60);
@@ -97,6 +99,7 @@ Esc                             - close app";
                 case Keyboard.Key.A: movement.X = -10f; break;
                 case Keyboard.Key.E: zoom = 0.95f; break;
                 case Keyboard.Key.Q: zoom = 1.05f; break;
+                case Keyboard.Key.L: legend^= true; break;
             }
             
         };
@@ -120,7 +123,10 @@ Esc                             - close app";
                 window.Draw(musician); 
             }
             window.SetView(defaultView);
-            window.Draw(helpLabel);
+            if (legend)
+            {
+                window.Draw(helpLabel);
+            }
             window.Display();
             mut.ReleaseMutex();
         }
