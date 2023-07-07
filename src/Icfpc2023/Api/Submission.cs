@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
-namespace icfpc2023.Api
+namespace Icfpc2023.Api
 {
     public class Coords
     {
         [JsonPropertyName("x")]
         public float X { get; set; }
-        
+
         [JsonPropertyName("y")]
         public float Y { get; set; }
     }
@@ -24,8 +19,8 @@ namespace icfpc2023.Api
     {
         [JsonPropertyName("problem_id")]
         public uint ProblemId { get; set; }
-        
+
         [JsonPropertyName("contents")]
-        public String Contents { get; set; }
+        public string Contents { get; set; }
     }
 }
