@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
+﻿using System.Text.Json.Serialization;
 
-namespace icfpc2023.Api
+namespace Icfpc2023.Api
 {
     public class AttendeesDescription
     {
         [JsonPropertyName("x")]
         public float X { get; init; }
-        
+
         [JsonPropertyName("y")]
         public float Y { get; init; }
 
@@ -22,7 +17,7 @@ namespace icfpc2023.Api
     {
         [JsonPropertyName("room_width")]
         public float RoomWidth { get; init; }
-        
+
         [JsonPropertyName("room_height")]
         public float RoomHeight { get; init; }
 
@@ -44,9 +39,9 @@ namespace icfpc2023.Api
     public class ProblemRequest
     {
         [JsonPropertyName("Success")]
-        public String Success { get; init; }
+        public string Success { get; init; }
 
         [JsonPropertyName("Failure")]
-        public String Failure { get; init; }
+        public string Failure { get; init; }
     }
 }
