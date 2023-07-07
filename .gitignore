@@ -399,3 +399,4 @@ FodyWeavers.xsd
 
 launchSettings.json
 .idea
+.DS_Store
