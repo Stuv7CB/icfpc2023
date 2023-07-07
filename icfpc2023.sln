@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# 
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3F1B2933-E023-47E9-A843-A8DC3569C062}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Icfpc2023", "src\Icfpc2023\Icfpc2023.csproj", "{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD} = {3F1B2933-E023-47E9-A843-A8DC3569C062}
+	EndGlobalSection
+EndGlobal
