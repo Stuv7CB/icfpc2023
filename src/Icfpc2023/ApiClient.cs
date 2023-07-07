@@ -16,8 +16,8 @@ namespace icfpc2023
 
         static ApiClient()
         {
-            // using StreamReader sr = new("./apitoken");
-            // Token = sr.ReadLine();
+            using StreamReader sr = new("./apitoken");
+            Token = sr.ReadLine();
         }
 
         public static async Task<List<Problem>> GetProblemsDefinition()
@@ -62,5 +62,36 @@ namespace icfpc2023
             }
             return problems;
         }
+        public static async Task<String> Submit(uint problemId, Placements placements)
+        {
+            var request = new HttpRequestMessage(HttpMethod.Post, BaseAddress + "submission");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", Token);
+            
+            //using var multipartFormContent = new MultipartFormDataContent();
+            var submission = new Submission{
+                ProblemId = problemId,
+                Contents = System.Text.Json.JsonSerializer.Serialize<Placements>(placements)
+            };
+            using StringContent jsonContent = new(
+                System.Text.Json.JsonSerializer.Serialize(submission),
+                System.Text.Encoding.UTF8,
+                "application/json");
+            // using var fileStreamContent = new StreamContent(File.OpenRead("./solutions/" + problemId.ToString() +".isl"));
+            // fileStreamContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/json");
+            // multipartFormContent.Add(fileStreamContent, name: "file", fileName: problemId.ToString() +".isl");
+
+            request.Content = jsonContent;
+
+            using var response = await Policy
+                                    .Handle<HttpRequestException>()
+                                    .WaitAndRetryAsync(5, retryAttempt => TimeSpan.FromMilliseconds(Math.Pow(2, retryAttempt + 6)))
+                                    .ExecuteAsync(async() =>
+                                    {
+                                        var response = await client.SendAsync(request);
+                                        response.EnsureSuccessStatusCode();
+                                        return response; 
+                                    });
+            return response.Content.ToString();
+        }  
     }
 }
