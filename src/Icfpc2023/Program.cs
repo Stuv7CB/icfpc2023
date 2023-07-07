@@ -1,2 +1,10 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿namespace icfpc2023
+{
+    internal static class Program
+    {
+        private static async Task Main(string[] args)
+        {
+            var problems = await ApiClient.GetProblemsDefinition();
+        }
+    }
+}
