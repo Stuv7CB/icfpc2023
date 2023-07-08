@@ -86,17 +86,15 @@ internal static class Program
 
         Console.WriteLine($"[{problemId}] Resulting score is {score}");
 
-        if (score > 0)
+
+        await apiClient.Submit((uint)problemId, new Placements
         {
-            await apiClient.Submit((uint)problemId, new Placements
+            PlacementsList = musicians.Select(m => new Coords
             {
-                PlacementsList = musicians.Select(m => new Coords
-                {
-                    X = m.Position.X,
-                    Y = m.Position.Y
-                }).ToList()
-            });
-        }
+                X = m.Position.X,
+                Y = m.Position.Y
+            }).ToList()
+        });
 
         pBar.Tick();
     }
