@@ -13,6 +13,16 @@ namespace Icfpc2023.Api
         [JsonPropertyName("tastes")]
         public IReadOnlyCollection<double> Tastes { get; init; }
     }
+
+    public class Pillar
+    {
+        [JsonPropertyName("center")]
+        public IReadOnlyCollection<double> Center { get; init; }
+
+        [JsonPropertyName("radius")]
+        public double Radius { get; init; }
+    }
+
     public class Problem
     {
         [JsonPropertyName("room_width")]
@@ -35,7 +45,11 @@ namespace Icfpc2023.Api
 
         [JsonPropertyName("attendees")]
         public IReadOnlyCollection<AttendeesDescription> Attendees { get; init; }
+
+        [JsonPropertyName("pillars")]
+        public IReadOnlyCollection<Pillar> Pillars { get; init; }
     }
+
     public class ProblemRequest
     {
         [JsonPropertyName("Success")]
