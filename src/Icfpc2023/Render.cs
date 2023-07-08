@@ -32,15 +32,15 @@ L                                        - toggle legend";
         mut.WaitOne();
         _problem = problem;
         room.FillColor = Color.Green;
-        room.Size = new Vector2f(problem.RoomWidth, problem.RoomHeight);
+        room.Size = new Vector2f((float)problem.RoomWidth, (float)problem.RoomHeight);
         stage.FillColor = Color.Red;
-        stage.Size = new Vector2f(problem.StageWidth, problem.StageHeight);
-        stage.Position = new Vector2f(problem.StageBottomLeft.ElementAt(0), problem.StageBottomLeft.ElementAt(1));
+        stage.Size = new Vector2f((float)problem.StageWidth, (float)problem.StageHeight);
+        stage.Position = new Vector2f((float)problem.StageBottomLeft.ElementAt(0), (float)problem.StageBottomLeft.ElementAt(1));
         foreach (var attendee in problem.Attendees)
         {
             var cir = new CircleShape(1.0f);
             cir.FillColor = Color.White;
-            cir.Position = new Vector2f(attendee.X - cir.Radius, attendee.Y - cir.Radius); 
+            cir.Position = new Vector2f((float)attendee.X - cir.Radius, (float)attendee.Y - cir.Radius); 
             attendees.Add(cir);
         }
         for (var i = 0; i < placements.PlacementsList.Count; ++i)
@@ -51,8 +51,8 @@ L                                        - toggle legend";
                                       (byte)(30 * ((instrument / 6) % 9)),
                                       (byte)(105 + 30 * (instrument % 6)),
                                         255);
-            cir.Position = new Vector2f(placements.PlacementsList[i].X - cir.Radius,
-                                        placements.PlacementsList[i].Y - cir.Radius); 
+            cir.Position = new Vector2f((float)placements.PlacementsList[i].X - cir.Radius,
+                                        (float)placements.PlacementsList[i].Y - cir.Radius); 
             musicians.Add(cir);
         }
         mut.ReleaseMutex();
@@ -158,7 +158,7 @@ L                                        - toggle legend";
                         foreach (var attendee in _problem.Attendees)
                         {
                             musicianConnections.Append(musicianVertex);
-                            musicianConnections.Append(new Vertex(new Vector2f(attendee.X, attendee.Y)));
+                            musicianConnections.Append(new Vertex(new Vector2f((float)attendee.X, (float)attendee.Y)));
                         }
                         return;
                     }
