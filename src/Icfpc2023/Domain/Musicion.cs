@@ -30,13 +30,14 @@ public class Musician
     public double GetClosenessFactor(IReadOnlyCollection<Musician> other)
     {
         return other.Where(o => o.Instrument.Id == Instrument.Id && o.Id != Id)
-            .Aggregate(1d, (q, m) =>
+            .Select(m =>
             {
                 var distanceVector = m.Position - Position;
                 var distance = Math.Sqrt(distanceVector * distanceVector);
 
                 return 1.0 / distance;
-            });
+            })
+            .Sum() + 1;
     }
 
     public void AdjustPosition(PointDto point)
