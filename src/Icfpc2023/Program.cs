@@ -13,7 +13,13 @@ internal static class Program
         var apiToken = Environment.GetEnvironmentVariable("API_TOKEN");
         using var apiClient = new ApiClient(apiToken);
         var problems = await apiClient.GetProblemsDefinition();
-        var problemId = 1;
+
+         var render = new Render();
+        var renderTrhead = new Thread(new ThreadStart(render.run));
+        renderTrhead.Start();
+
+        var renderProblemId = 1;
+        render.setProblem(problems.ElementAt(renderProblemId - 1));
 
         using var pBar = new ProgressBar(
             problems.Count,
@@ -25,6 +31,7 @@ internal static class Program
                 i + 1,
                 pBar))
             .ToArray());
+        render.setSolution(result.ElementAt(renderProblemId - 1).Placements);
     }
 
     private static async Task<(double Score, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar)
