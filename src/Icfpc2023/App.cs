@@ -14,6 +14,9 @@ public class App
     private Thread _inputThread;
     private int _renderProblemId = 1;
     private static object _lock = new();
+
+    private const double _temperature = 1000d;
+    private const double _step = 10d;   
     public App(List<Problem> problems, Render render, ApiClient apiClient)
     {
         _problems = problems;
@@ -118,14 +121,11 @@ public class App
 
         var calculator = new ScoreCalculator(problemId, scene, listeners);
 
-        var temperature = 1000d;
-        var step = 10d;
-
         using var childBar = pBar.Spawn(
-            (int)(temperature / step),
+            (int)(_temperature / _step),
             $"[{problemId}] Start processing");
 
-        var solver = new Solver(temperature, step);
+        var solver = new Solver(_temperature, _step);
         var progress = new Progress<double>(_ => childBar.Tick());
         var score = solver.Solve(calculator, scene, listeners, musicians, progress);
 
