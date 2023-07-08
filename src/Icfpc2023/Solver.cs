@@ -1,32 +1,31 @@
 using Icfpc2023.Utils;
+using ShellProgressBar;
 
 namespace Icfpc2023;
 
 public class Solver
 {
-    private static double H = 10;
-
+    private readonly double _temperature;
     private readonly double _step;
-    private readonly int _iterations;
 
-    public Solver(double step, int iterations)
+    public Solver(double temperature, double step)
     {
+        _temperature = temperature;
         _step = step;
-        _iterations = iterations;
     }
 
     public double Solve(ScoreCalculator calculator, Scene scene, IReadOnlyCollection<Listener> listeners,
-        IReadOnlyCollection<Musician> musicians)
+        IReadOnlyCollection<Musician> musicians, IProgress<double> progress)
     {
         var rand = new Random();
 
-        var temperature = 1000d;
-        var step = 1d;
+        var temperature = _temperature;
 
         var score = calculator.CalculateScore(scene, listeners, musicians);
-
         while (temperature > 0)
         {
+            progress.Report(temperature);
+
             var origPos = new Queue<PointDto>();
 
             foreach (var musician in musicians)
@@ -64,7 +63,7 @@ public class Solver
             if (newScore >= score)
             {
                 score = newScore;
-                temperature -= step;
+                temperature -= _step;
                 continue;
             }
 
@@ -81,7 +80,7 @@ public class Solver
                 }
             }
 
-            temperature -= step;
+            temperature -= _step;
         }
 
         return score;

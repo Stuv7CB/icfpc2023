@@ -1,5 +1,6 @@
 ﻿using Icfpc2023.Api;
 using Icfpc2023.Utils;
+using ShellProgressBar;
 
 namespace Icfpc2023;
 
@@ -14,14 +15,18 @@ internal static class Program
         var problems = await apiClient.GetProblemsDefinition();
         var problemId = 1;
 
-        await Parallel.ForEachAsync(problems.Zip(Enumerable.Range(1, int.MaxValue)),
-            async (p, _) => await ProcessProblem(p.First, apiClient, p.Second));
+        using var pBar = new ProgressBar(
+            problems.Count,
+            $"Processing");
+
+        await Parallel.ForEachAsync(problems.Zip(Enumerable.Range(1, int.MaxValue))
+                // .Where(i => i.Second == 17 || i.Second == 25)
+                .Select(x => x),
+            async (p, _) => await ProcessProblem(p.First, apiClient, p.Second, pBar));
     }
 
-    private static async Task ProcessProblem(Problem problem, ApiClient apiClient, int problemId)
+    private static async Task ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar)
     {
-        Console.WriteLine($"[{problemId}] Start processing");
-
         var numberOfInstruments = problem.Musicians.Max() + 1;
 
         var instruments = Enumerable.Range(0, (int)numberOfInstruments)
@@ -69,8 +74,16 @@ internal static class Program
 
         var calculator = new ScoreCalculator();
 
-        var solver = new Solver(10f, 100);
-        var score = solver.Solve(calculator, scene, listeners, musicians);
+        var temperature = 1000d;
+        var step = 1d;
+
+        using var childBar = pBar.Spawn(
+            (int)(temperature * step),
+            $"[{problemId}] Start processing");
+
+        var solver = new Solver(1000f, 1);
+        var progress = new Progress<double>(_ => childBar.Tick());
+        var score = solver.Solve(calculator, scene, listeners, musicians, progress);
 
         Console.WriteLine($"[{problemId}] Resulting score is {score}");
 
@@ -85,5 +98,7 @@ internal static class Program
                 }).ToList()
             });
         }
+
+        pBar.Tick();
     }
 }
