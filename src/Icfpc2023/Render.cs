@@ -27,7 +27,7 @@ L                                        - toggle legend";
     private Api.Problem? _problem;
     private Dictionary<int,VertexArray> connections = new Dictionary<int,VertexArray>();
 
-    public void setData(Api.Problem problem, Api.Placements placements)
+    public void setProblem(Api.Problem problem)
     {
         mut.WaitOne();
         _problem = problem;
@@ -36,6 +36,7 @@ L                                        - toggle legend";
         stage.FillColor = Color.Red;
         stage.Size = new Vector2f((float)problem.StageWidth, (float)problem.StageHeight);
         stage.Position = new Vector2f((float)problem.StageBottomLeft.ElementAt(0), (float)problem.StageBottomLeft.ElementAt(1));
+        attendees.Clear();
         foreach (var attendee in problem.Attendees)
         {
             var cir = new CircleShape(1.0f);
@@ -43,10 +44,16 @@ L                                        - toggle legend";
             cir.Position = new Vector2f((float)attendee.X - cir.Radius, (float)attendee.Y - cir.Radius); 
             attendees.Add(cir);
         }
+        mut.ReleaseMutex();
+    }
+    public void setSolution(Api.Placements placements)
+    {
+        mut.WaitOne();
         for (var i = 0; i < placements.PlacementsList.Count; ++i)
         {
             var cir = new CircleShape(5.0f);
-            var instrument = problem.Musicians.ElementAt(i);
+            var instrument = _problem.Musicians.ElementAt(i);
+            musicians.Clear();
             cir.FillColor = new Color((byte)(30 * ((instrument / 54) % 9)),
                                       (byte)(30 * ((instrument / 6) % 9)),
                                       (byte)(105 + 30 * (instrument % 6)),

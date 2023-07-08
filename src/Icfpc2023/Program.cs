@@ -18,19 +18,8 @@ internal static class Program
         var renderTrhead = new Thread(new ThreadStart(render.run));
         renderTrhead.Start();
 
-        //just an example
-        var pl = new Api.Placements{PlacementsList = new List<Api.Coords>()};
-        pl.PlacementsList.Add(new Api.Coords{
-            X = 33f,
-            Y = 55f
-        });
-        pl.PlacementsList.Add(new Api.Coords{
-            X = 100f,
-            Y = 100f
-        });
-        render.setData(problems.ElementAt(0), pl);
-        ///
-        var problemId = 1;
+        var renderProblemId = 1;
+        render.setProblem(problems.ElementAt(renderProblemId - 1));
 
         using var pBar = new ProgressBar(
             problems.Count,
@@ -42,6 +31,7 @@ internal static class Program
                 i + 1,
                 pBar))
             .ToArray());
+        render.setSolution(result.ElementAt(renderProblemId - 1).Placements);
     }
 
     private static async Task<(double Score, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar)
