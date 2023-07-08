@@ -1,4 +1,4 @@
-using Icfpc2023.Utils;
+using Icfpc2023.Domain;
 using ShellProgressBar;
 
 namespace Icfpc2023;
@@ -21,7 +21,7 @@ public class Solver
 
         var temperature = _temperature;
 
-        var score = calculator.CalculateScore(scene, listeners, musicians);
+        var score = calculator.CalculateScore(musicians);
         while (temperature > 0)
         {
             progress.Report(temperature);
@@ -54,7 +54,7 @@ public class Solver
                 }
             }
 
-            var newScore = calculator.CalculateScore(scene, listeners, musicians);
+            var newScore = calculator.CalculateScore(musicians);
             if (Math.Abs(newScore - double.MinValue) < double.Epsilon)
             {
                 Console.WriteLine("Hooray");

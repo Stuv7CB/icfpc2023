@@ -1,4 +1,4 @@
-namespace Icfpc2023.Utils;
+namespace Icfpc2023.Domain;
 
 public class Musician
 {
@@ -24,7 +24,19 @@ public class Musician
                                       - (listener.Position.X - Position.X) * (other.Position.Y - listener.Position.Y))
                              / Math.Sqrt(otherVector * otherVector);
 
-        return distanceToLine <= 5 && (distance - 5.0 < otherDistance);
+        return distanceToLine < 5.0 && (distance - 5.0 < otherDistance);
+    }
+
+    public double GetClosenessFactor(IReadOnlyCollection<Musician> other)
+    {
+        return other.Where(o => o.Instrument.Id == Instrument.Id && o.Id != Id)
+            .Aggregate(1d, (q, m) =>
+            {
+                var distanceVector = m.Position - Position;
+                var distance = Math.Sqrt(distanceVector * distanceVector);
+
+                return 1.0 / distance;
+            });
     }
 
     public void AdjustPosition(PointDto point)
