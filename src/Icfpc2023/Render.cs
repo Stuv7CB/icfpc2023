@@ -49,11 +49,11 @@ L                                        - toggle legend";
     public void setSolution(Api.Placements placements)
     {
         mut.WaitOne();
+        musicians.Clear();
         for (var i = 0; i < placements.PlacementsList.Count; ++i)
         {
             var cir = new CircleShape(5.0f);
             var instrument = _problem.Musicians.ElementAt(i);
-            musicians.Clear();
             cir.FillColor = new Color((byte)(30 * ((instrument / 54) % 9)),
                                       (byte)(30 * ((instrument / 6) % 9)),
                                       (byte)(105 + 30 * (instrument % 6)),
