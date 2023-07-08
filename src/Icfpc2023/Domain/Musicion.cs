@@ -24,7 +24,7 @@ public class Musician
                                       - (listener.Position.X - Position.X) * (other.Position.Y - listener.Position.Y))
                              / Math.Sqrt(otherVector * otherVector);
 
-        return distanceToLine <= 5 && (distance - 5.0 <= otherDistance);
+        return distanceToLine <= 5 && (distance - 5.0 < otherDistance);
     }
 
     public void AdjustPosition(PointDto point)

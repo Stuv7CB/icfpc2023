@@ -27,8 +27,6 @@ public class Solver
 
         while (temperature > 0)
         {
-            Console.WriteLine(temperature);
-
             var origPos = new Queue<PointDto>();
 
             foreach (var musician in musicians)
