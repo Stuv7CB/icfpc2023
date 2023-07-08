@@ -1,14 +1,15 @@
-using System.IO;
-using System.Collections.Generic;
+using System.Threading.Channels;
+using Icfpc2023.Api;
 using SFML.Window;
 using SFML.Graphics;
 using SFML.System;
 
 namespace Icfpc2023;
+
 public class Render
 {
-    private const string HelpMsg = 
-@"
+    private const string HelpMsg =
+        @"
 WASD/Arrows                     - movement
 Shift                                  - faster movement
 Q/E                                   - zoom
@@ -18,8 +19,9 @@ hold MMB                         - show coords
 U                                       - submit solutions
 Esc                                     - close app
 L                                        - toggle legend";
+
     private readonly object _lock = new object();
-    private RenderWindow _window = new(new VideoMode(1024 , 768), "icfpc2023");
+    private RenderWindow _window = new(new VideoMode(1024, 768), "icfpc2023");
     private View _mainView = new(new Vector2f(0, 0), new Vector2f(1024f, 768f));
     private View _hudView = new(new Vector2f(0, 0), new Vector2f(1024f, 768f));
     private Font _openSans = new("./assets/fonts/OpenSans-Regular.ttf");
@@ -32,7 +34,7 @@ L                                        - toggle legend";
     private Api.Problem? _problem;
     private int _problemId = 0;
     private int _totalProblemsCount = 0;
-    private Dictionary<int,VertexArray> _connections = new();
+    private Dictionary<int, VertexArray> _connections = new();
 
     public Render(int totalProblemsCount)
     {
@@ -48,9 +50,9 @@ L                                        - toggle legend";
 
     }
 
-    public void setProblem(Api.Problem problem, int problemId)
+    public void SetProblem(Api.Problem problem, int problemId)
     {
-        lock(_lock)
+        lock (_lock)
         {
             _connections.Clear();
             _problemId = problemId;
@@ -58,29 +60,32 @@ L                                        - toggle legend";
             _currentProblemLabel.DisplayedString = _problemId.ToString() + "/" + _totalProblemsCount.ToString();
             _room.Size = new((float)problem.RoomWidth, (float)problem.RoomHeight);
             _stage.Size = new((float)problem.StageWidth, (float)problem.StageHeight);
-            _stage.Position = new((float)problem.StageBottomLeft.ElementAt(0), (float)problem.StageBottomLeft.ElementAt(1));
+            _stage.Position = new((float)problem.StageBottomLeft.ElementAt(0),
+                (float)problem.StageBottomLeft.ElementAt(1));
             _attendees.Clear();
             foreach (var attendee in problem.Attendees)
             {
                 var cir = new CircleShape(1.0f);
                 cir.FillColor = Color.White;
-                cir.Position = new((float)attendee.X - cir.Radius, (float)attendee.Y - cir.Radius); 
+                cir.Position = new((float)attendee.X - cir.Radius, (float)attendee.Y - cir.Radius);
                 _attendees.Add(cir);
             }
+
             _pillars.Clear();
             foreach (var pillar in problem.Pillars)
             {
                 var cir = new CircleShape((float)pillar.Radius);
                 cir.FillColor = new(100, 100, 100, 255);
                 cir.Position = new((float)pillar.Center.ElementAt(0) - cir.Radius,
-                                   (float)pillar.Center.ElementAt(1) - cir.Radius); 
+                    (float)pillar.Center.ElementAt(1) - cir.Radius);
                 _pillars.Add(cir);
             }
         }
     }
-    public void setSolution(Api.Placements placements)
+
+    public void SetSolution(Api.Placements placements)
     {
-        lock(_lock)
+        lock (_lock)
         {
             _musicians.Clear();
             for (var i = 0; i < placements.PlacementsList.Count; ++i)
@@ -88,25 +93,26 @@ L                                        - toggle legend";
                 var cir = new CircleShape(5.0f);
                 var instrument = _problem.Musicians.ElementAt(i);
                 cir.FillColor = new((byte)(30 * ((instrument / 54) % 9)),
-                                    (byte)(30 * ((instrument / 6) % 9)),
-                                    (byte)(105 + 30 * (instrument % 6)),
-                                    255);
+                    (byte)(30 * ((instrument / 6) % 9)),
+                    (byte)(105 + 30 * (instrument % 6)),
+                    255);
                 cir.Position = new((float)placements.PlacementsList[i].X - cir.Radius,
-                                    (float)placements.PlacementsList[i].Y - cir.Radius); 
+                    (float)placements.PlacementsList[i].Y - cir.Radius);
                 _musicians.Add(cir);
             }
         }
     }
-    public void run()
+
+    public void Run(ChannelReader<(int, Problem)> problemReader, ChannelReader<Placements> solutionReader)
     {
-        bool ctrl = false;
-        int shift = 1;
-        bool submit = false;
+        var ctrl = false;
+        var shift = 1;
+        var submit = false;
         var movement = new Vector2f(0f, 0f);
         var zoom = 1f;
-        bool legend = true;
-        bool showCoords = false;
-        
+        var legend = true;
+        var showCoords = false;
+
         using Font openSans = new("./assets/fonts/OpenSans-Regular.ttf");
         using Text helpLabel = new(HelpMsg, openSans, 10);
         helpLabel.Position = new Vector2f(20, 0);
@@ -115,51 +121,86 @@ L                                        - toggle legend";
         _window.Resized += (sender, e) =>
         {
             _mainView.Reset(new FloatRect(new Vector2f(0, 0),
-                                         new Vector2f(e.Width, e.Height)));
+                new Vector2f(e.Width, e.Height)));
             _hudView.Reset(new FloatRect(new Vector2f(0, 0),
-                                         new Vector2f(e.Width, e.Height)));
+                new Vector2f(e.Width, e.Height)));
         };
         _window.Closed += (sender, e) => _window.Close();
         _window.KeyReleased += (sender, e) =>
         {
             switch (e.Code)
             {
-                case Keyboard.Key.LControl: ctrl = false; break;
-                case Keyboard.Key.LShift: shift = 1; break;
+                case Keyboard.Key.LControl:
+                    ctrl = false;
+                    break;
+                case Keyboard.Key.LShift:
+                    shift = 1;
+                    break;
                 case Keyboard.Key.Up:
                 case Keyboard.Key.W:
                 case Keyboard.Key.Down:
-                case Keyboard.Key.S: movement.Y = 0f; break;
+                case Keyboard.Key.S:
+                    movement.Y = 0f;
+                    break;
                 case Keyboard.Key.Right:
-                case Keyboard.Key.D: 
+                case Keyboard.Key.D:
                 case Keyboard.Key.Left:
-                case Keyboard.Key.A: movement.X = 0f; break;
-                case Keyboard.Key.E: 
-                case Keyboard.Key.Q: zoom = 1; break;
+                case Keyboard.Key.A:
+                    movement.X = 0f;
+                    break;
+                case Keyboard.Key.E:
+                case Keyboard.Key.Q:
+                    zoom = 1;
+                    break;
             }
         };
         _window.KeyPressed += (sender, e) =>
         {
             switch (e.Code)
             {
-                case Keyboard.Key.LControl: ctrl = true; break;
-                case Keyboard.Key.LShift: shift = 10; break;
-                case Keyboard.Key.Escape: _window.Close(); break;
-                case Keyboard.Key.U: submit = true; _window.Close(); break;
+                case Keyboard.Key.LControl:
+                    ctrl = true;
+                    break;
+                case Keyboard.Key.LShift:
+                    shift = 10;
+                    break;
+                case Keyboard.Key.Escape:
+                    _window.Close();
+                    break;
+                case Keyboard.Key.U:
+                    submit = true;
+                    _window.Close();
+                    break;
                 case Keyboard.Key.Up:
-                case Keyboard.Key.W: movement.Y = -10f; break;
+                case Keyboard.Key.W:
+                    movement.Y = -10f;
+                    break;
                 case Keyboard.Key.Down:
-                case Keyboard.Key.S: movement.Y = 10f; break;
+                case Keyboard.Key.S:
+                    movement.Y = 10f;
+                    break;
                 case Keyboard.Key.Right:
-                case Keyboard.Key.D: movement.X = 10f; break;
+                case Keyboard.Key.D:
+                    movement.X = 10f;
+                    break;
                 case Keyboard.Key.Left:
-                case Keyboard.Key.A: movement.X = -10f; break;
-                case Keyboard.Key.E: zoom = 0.95f; break;
-                case Keyboard.Key.Q: zoom = 1.05f; break;
-                case Keyboard.Key.L: legend^= true; break;
-                case Keyboard.Key.C: _connections.Clear(); break;
+                case Keyboard.Key.A:
+                    movement.X = -10f;
+                    break;
+                case Keyboard.Key.E:
+                    zoom = 0.95f;
+                    break;
+                case Keyboard.Key.Q:
+                    zoom = 1.05f;
+                    break;
+                case Keyboard.Key.L:
+                    legend ^= true;
+                    break;
+                case Keyboard.Key.C:
+                    _connections.Clear();
+                    break;
             }
-            
+
         };
         _window.MouseButtonReleased += (sender, e) =>
         {
@@ -185,23 +226,27 @@ L                                        - toggle legend";
                             _connections.Remove(i);
                             return;
                         }
+
                         var musicianConnections = new VertexArray(PrimitiveType.Lines);
                         if (!_connections.TryAdd(i, musicianConnections))
                         {
                             return;
                         }
+
                         var instrument = _problem.Musicians.ElementAt(i);
                         var musicianVertex = new Vertex(new Vector2f(musician.Position.X + musician.Radius,
-                                                                    musician.Position.Y + musician.Radius));
+                            musician.Position.Y + musician.Radius));
                         foreach (var attendee in _problem.Attendees)
                         {
                             musicianConnections.Append(musicianVertex);
                             musicianConnections.Append(new Vertex(new Vector2f((float)attendee.X, (float)attendee.Y)));
                         }
+
                         return;
                     }
                 }
             }
+
             if (e.Button == Mouse.Button.Middle)
             {
                 _window.SetView(_mainView);
@@ -213,7 +258,17 @@ L                                        - toggle legend";
         };
         while (_window.IsOpen)
         {
-            lock(_lock)
+            if (problemReader.TryRead(out var problem))
+            {
+                SetProblem(problem.Item2, problem.Item1);
+            }
+
+            if (solutionReader.TryRead(out var solution))
+            {
+                SetSolution(solution);
+            }
+
+            lock (_lock)
             {
                 _window.DispatchEvents();
                 _window.Clear();
@@ -226,27 +281,33 @@ L                                        - toggle legend";
                 {
                     _window.Draw(musicianConnections.Value);
                 }
+
                 foreach (var attendee in _attendees)
                 {
-                    _window.Draw(attendee); 
+                    _window.Draw(attendee);
                 }
+
                 foreach (var musician in _musicians)
                 {
-                    _window.Draw(musician); 
+                    _window.Draw(musician);
                 }
+
                 foreach (var pillar in _pillars)
                 {
-                    _window.Draw(pillar); 
+                    _window.Draw(pillar);
                 }
+
                 _window.SetView(_hudView);
                 if (legend)
                 {
                     _window.Draw(helpLabel);
                 }
+
                 if (showCoords)
                 {
                     _window.Draw(coordsLabel);
                 }
+
                 _window.Draw(_currentProblemLabel);
                 _window.Display();
             }
