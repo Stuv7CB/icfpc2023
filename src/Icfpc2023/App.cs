@@ -123,7 +123,9 @@ public class App : IDisposable
                         Value = kv.t
                     }))).ToArray();
 
-        var calculator = new ScoreCalculator(problemId, scene, listeners);
+        var pillars = problem.Pillars.Select((p, i) => new Domain.Pillar(i, new PointDto(p.Center.First(), p.Center.Last()), p.Radius)).ToArray();
+
+        var calculator = new ScoreCalculator(problemId, scene, listeners, pillars);
 
         using var childBar = pBar.Spawn(
             (int)(_temperature / _step),
