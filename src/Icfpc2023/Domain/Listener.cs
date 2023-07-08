@@ -15,25 +15,25 @@ public class Listener
 
     public IDictionary<Instrument, Taste> Tastes { get; }
 
-    public float GetHappiness(IReadOnlyCollection<Musicion> musitions)
+    public double GetHappiness(IReadOnlyCollection<Musician> musicians)
     {
-        var happiness = 0f;
+        var happiness = 0d;
 
-        foreach (var musition in musitions)
+        foreach (var musician in musicians)
         {
-            var isBlocked = musitions.Where(m => m.Id != musition.Id)
-                .Aggregate(false, (s, m) => s || m.DoesBlocks(musition, this));
+            var isBlocked = musicians.Where(m => m.Id != musician.Id)
+                .Aggregate(false, (s, m) => s || m.DoesBlocks(musician, this));
 
             if (isBlocked)
             {
                 continue;
             }
 
-            var vector = musition.Position - Position;
+            var vector = musician.Position - Position;
 
             var distance = vector * vector;
 
-            happiness += (float)Math.Ceiling(1000000 * Tastes[musition.Instrument].Value / distance);
+            happiness += Math.Ceiling(1000000 * Tastes[musician.Instrument].Value / distance);
         }
 
         return happiness;
