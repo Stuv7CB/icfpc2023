@@ -13,8 +13,8 @@ internal static class Program
         var problems = await apiClient.GetProblemsDefinition();
 
         var render = new Render(problems.Count);
-        render.setProblem(problems.ElementAt(1), 1);
-        var app = new App(problems, render, apiClient);
+        render.setProblem(problems.ElementAt(0), 1);
+        using var app = new App(problems, render, apiClient);
         render.run();
     }
 }
