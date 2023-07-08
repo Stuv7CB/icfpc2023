@@ -7,7 +7,7 @@ namespace Icfpc2023;
 public class App
 {
     private List<Problem> _problems;
-    private (double, Placements)[] _solutions;
+    private Dictionary<int, Placements> _solutions = new();
     private Render _render;
     private ApiClient _apiClient;
     private Thread _calculationTrhead;
@@ -37,9 +37,9 @@ public class App
             {
                 _renderProblemId = Int32.Parse(input);
                 _render.setProblem(_problems.ElementAt(_renderProblemId), _renderProblemId);
-                if (_solutions != null)
+                if (_solutions.ContainsKey(_renderProblemId))
                 {
-                    _render.setSolution(_solutions[_renderProblemId].Item2);
+                    _render.setSolution(_solutions[_renderProblemId]);
                 }
             }
         }
@@ -63,11 +63,14 @@ public class App
             .ToArray());
         lock(_lock)
         {
-            _solutions = result;
+            foreach (var solution in result)
+            {
+                _solutions.Add(solution.problemId, solution.Placements);
+            }
             _render.setSolution(result.ElementAt(_renderProblemId - 1).Placements);
         }
     }
-    private static async Task<(double Score, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar, SemaphoreSlim semaphore)
+    private static async Task<(int problemId, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar, SemaphoreSlim semaphore)
     {
         try
         {
@@ -144,7 +147,7 @@ public class App
 
         pBar.Tick();
 
-        return (score, placement);
+        return (problemId, placement);
         }
         finally
         {
