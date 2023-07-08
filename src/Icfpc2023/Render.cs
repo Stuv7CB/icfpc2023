@@ -10,21 +10,27 @@ public class Render
     private const string HelpMsg = 
 @"
 WASD/Arrows                     - movement
-Shift                           - faster movement
-Q/E                             - zoom
-U                                 - submit solutions
-Esc                             - close app
-L                               - toggle legend";
+Shift                                  - faster movement
+Q/E                                   - zoom
+LMB/RMB                          - show/hide connections for musician
+hold MMB                         - show coords
+U                                       - submit solutions
+Esc                                     - close app
+L                                        - toggle legend";
     private Mutex mut = new Mutex();
-    private View firstView = new View(new Vector2f(1024f, 768f), new Vector2f(512f, 384f));
+    private View mainView = new View(new Vector2f(0, 0), new Vector2f(1024f, 768f));
+    private View hudView = new View(new Vector2f(0, 0), new Vector2f(1024f, 768f));
     private RectangleShape room = new RectangleShape();
     private RectangleShape stage = new RectangleShape();
     private List<CircleShape> attendees = new List<CircleShape>();
     private List<CircleShape> musicians = new List<CircleShape>();
+    private Api.Problem? _problem;
+    private Dictionary<int,VertexArray> connections = new Dictionary<int,VertexArray>();
 
     public void setData(Api.Problem problem, Api.Placements placements)
     {
         mut.WaitOne();
+        _problem = problem;
         room.FillColor = Color.Green;
         room.Size = new Vector2f(problem.RoomWidth, problem.RoomHeight);
         stage.FillColor = Color.Red;
@@ -34,7 +40,7 @@ L                               - toggle legend";
         {
             var cir = new CircleShape(1.0f);
             cir.FillColor = Color.White;
-            cir.Position = new Vector2f(attendee.X, attendee.Y); 
+            cir.Position = new Vector2f(attendee.X - cir.Radius, attendee.Y - cir.Radius); 
             attendees.Add(cir);
         }
         for (var i = 0; i < placements.PlacementsList.Count; ++i)
@@ -45,7 +51,8 @@ L                               - toggle legend";
                                       (byte)(30 * ((instrument / 6) % 9)),
                                       (byte)(105 + 30 * (instrument % 6)),
                                         255);
-            cir.Position = new Vector2f(placements.PlacementsList[i].X, placements.PlacementsList[i].Y); 
+            cir.Position = new Vector2f(placements.PlacementsList[i].X - cir.Radius,
+                                        placements.PlacementsList[i].Y - cir.Radius); 
             musicians.Add(cir);
         }
         mut.ReleaseMutex();
@@ -58,6 +65,7 @@ L                               - toggle legend";
         var movement = new Vector2f(0f, 0f);
         var zoom = 1f;
         bool legend = true;
+        bool showCoords = false;
 
         var window = new RenderWindow(new VideoMode(1024 , 768), "icfpc2023");
         window.SetFramerateLimit(60);
@@ -65,7 +73,15 @@ L                               - toggle legend";
         using Font openSans = new("./assets/fonts/OpenSans-Regular.ttf");
         using Text helpLabel = new(HelpMsg, openSans, 10);
         helpLabel.Position = new Vector2f(20, 0);
+        using Text coordsLabel = new("", openSans, 14);
 
+        window.Resized += (sender, e) =>
+        {
+            mainView.Reset(new FloatRect(new Vector2f(0, 0),
+                                         new Vector2f(e.Width, e.Height)));
+            hudView.Reset(new FloatRect(new Vector2f(0, 0),
+                                         new Vector2f(e.Width, e.Height)));
+        };
         window.Closed += (sender, e) => window.Close();
         window.KeyReleased += (sender, e) =>
         {
@@ -107,17 +123,70 @@ L                               - toggle legend";
             }
             
         };
-        var defaultView = window.DefaultView;
+        window.MouseButtonReleased += (sender, e) =>
+        {
+            if (e.Button == Mouse.Button.Middle)
+            {
+                showCoords = false;
+            }
+        };
+        window.MouseButtonPressed += (sender, e) =>
+        {
+            if (e.Button == Mouse.Button.Left || e.Button == Mouse.Button.Right)
+            {
+                window.SetView(mainView);
+                var coords = window.MapPixelToCoords(new Vector2i(e.X, e.Y));
+                for (var i = 0; i < musicians.Count; ++i)
+                {
+                    var musician = musicians.ElementAt(i);
+                    if (coords.X > musician.Position.X && coords.X < musician.Position.X + 2 * musician.Radius &&
+                        coords.Y > musician.Position.Y && coords.Y < musician.Position.Y + 2 * musician.Radius)
+                    {
+                        if (e.Button == Mouse.Button.Right)
+                        {
+                            connections.Remove(i);
+                            return;
+                        }
+                        var musicianConnections = new VertexArray(PrimitiveType.Lines);
+                        if (!connections.TryAdd(i, musicianConnections))
+                        {
+                            return;
+                        }
+                        var instrument = _problem.Musicians.ElementAt(i);
+                        var musicianVertex = new Vertex(new Vector2f(musician.Position.X + musician.Radius,
+                                                                    musician.Position.Y + musician.Radius));
+                        foreach (var attendee in _problem.Attendees)
+                        {
+                            musicianConnections.Append(musicianVertex);
+                            musicianConnections.Append(new Vertex(new Vector2f(attendee.X, attendee.Y)));
+                        }
+                        return;
+                    }
+                }
+            }
+            if (e.Button == Mouse.Button.Middle)
+            {
+                window.SetView(mainView);
+                var coords = window.MapPixelToCoords(new Vector2i(e.X, e.Y));
+                coordsLabel.Position = new Vector2f(e.X + 20, e.Y);
+                coordsLabel.DisplayedString = "(" + coords.X.ToString() + " | " + coords.Y.ToString() + ")";
+                showCoords = true;
+            }
+        };
         while (window.IsOpen)
         {
             mut.WaitOne();
             window.DispatchEvents();
             window.Clear();
-            firstView.Move(movement * shift);
-            firstView.Zoom(zoom);
-            window.SetView(firstView);
+            mainView.Move(movement * shift);
+            mainView.Zoom(zoom);
+            window.SetView(mainView);
             window.Draw(room);
             window.Draw(stage);
+            foreach (var musicianConnections in connections)
+            {
+                window.Draw(musicianConnections.Value);
+            }
             foreach (var attendee in attendees)
             {
                 window.Draw(attendee); 
@@ -126,10 +195,15 @@ L                               - toggle legend";
             {
                 window.Draw(musician); 
             }
-            window.SetView(defaultView);
+            window.SetView(hudView);
             if (legend)
             {
                 window.Draw(helpLabel);
+
+            }
+            if (showCoords)
+            {
+                window.Draw(coordsLabel);
             }
             window.Display();
             mut.ReleaseMutex();

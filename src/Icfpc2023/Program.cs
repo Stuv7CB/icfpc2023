@@ -24,6 +24,10 @@ internal static class Program
             X = 33f,
             Y = 55f
         });
+        pl.PlacementsList.Add(new Api.Coords{
+            X = 100f,
+            Y = 100f
+        });
         render.setData(problems.ElementAt(0), pl);
         ///
         var problemId = 1;
