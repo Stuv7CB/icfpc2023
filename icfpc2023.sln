@@ -5,6 +5,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3F1B2933-E02
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Icfpc2023", "src\Icfpc2023\Icfpc2023.csproj", "{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{41035D62-ABB9-4EB9-B4C9-16157107B8C0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Icfpc2023.Tests", "tests\Icfpc2023.Tests\Icfpc2023.Tests.csproj", "{7F3B6A45-2585-4C77-90A2-CFB430823AE3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,8 +19,13 @@ Global
 		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7F3B6A45-2585-4C77-90A2-CFB430823AE3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7F3B6A45-2585-4C77-90A2-CFB430823AE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7F3B6A45-2585-4C77-90A2-CFB430823AE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7F3B6A45-2585-4C77-90A2-CFB430823AE3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{7AD4B70C-4CE7-4510-A473-0FFCA6790FAD} = {3F1B2933-E023-47E9-A843-A8DC3569C062}
+		{7F3B6A45-2585-4C77-90A2-CFB430823AE3} = {41035D62-ABB9-4EB9-B4C9-16157107B8C0}
 	EndGlobalSection
 EndGlobal

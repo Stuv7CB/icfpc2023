@@ -5,30 +5,30 @@ namespace Icfpc2023.Api
     public class AttendeesDescription
     {
         [JsonPropertyName("x")]
-        public float X { get; init; }
+        public double X { get; init; }
 
         [JsonPropertyName("y")]
-        public float Y { get; init; }
+        public double Y { get; init; }
 
         [JsonPropertyName("tastes")]
-        public IReadOnlyCollection<float> Tastes { get; init; }
+        public IReadOnlyCollection<double> Tastes { get; init; }
     }
     public class Problem
     {
         [JsonPropertyName("room_width")]
-        public float RoomWidth { get; init; }
+        public double RoomWidth { get; init; }
 
         [JsonPropertyName("room_height")]
-        public float RoomHeight { get; init; }
+        public double RoomHeight { get; init; }
 
         [JsonPropertyName("stage_width")]
-        public float StageWidth { get; init; }
+        public double StageWidth { get; init; }
 
         [JsonPropertyName("stage_height")]
-        public float StageHeight { get; init; }
+        public double StageHeight { get; init; }
 
         [JsonPropertyName("stage_bottom_left")]
-        public IReadOnlyCollection<float> StageBottomLeft { get; init; }
+        public IReadOnlyCollection<double> StageBottomLeft { get; init; }
 
         [JsonPropertyName("musicians")]
         public IReadOnlyCollection<uint> Musicians { get; init; }
