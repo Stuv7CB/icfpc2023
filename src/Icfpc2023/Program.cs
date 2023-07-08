@@ -20,7 +20,6 @@ internal static class Program
             $"Processing");
 
         await Parallel.ForEachAsync(problems.Zip(Enumerable.Range(1, int.MaxValue))
-                // .Where(i => i.Second == 17 || i.Second == 25)
                 .Select(x => x),
             async (p, _) => await ProcessProblem(p.First, apiClient, p.Second, pBar));
     }
@@ -75,13 +74,13 @@ internal static class Program
         var calculator = new ScoreCalculator();
 
         var temperature = 1000d;
-        var step = 1d;
+        var step = 10d;
 
         using var childBar = pBar.Spawn(
-            (int)(temperature * step),
+            (int)(temperature / step),
             $"[{problemId}] Start processing");
 
-        var solver = new Solver(1000f, 1);
+        var solver = new Solver(temperature, step);
         var progress = new Progress<double>(_ => childBar.Tick());
         var score = solver.Solve(calculator, scene, listeners, musicians, progress);
 
