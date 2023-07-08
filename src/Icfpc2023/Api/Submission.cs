@@ -5,10 +5,10 @@ namespace Icfpc2023.Api
     public class Coords
     {
         [JsonPropertyName("x")]
-        public float X { get; set; }
+        public double X { get; set; }
 
         [JsonPropertyName("y")]
-        public float Y { get; set; }
+        public double Y { get; set; }
     }
     public class Placements
     {

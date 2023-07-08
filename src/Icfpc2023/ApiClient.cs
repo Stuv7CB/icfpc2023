@@ -45,7 +45,7 @@ namespace Icfpc2023
             {
                 problems.Add(JsonSerializer.Deserialize<Problem>(File.ReadAllText("./problems/" + i.ToString() + ".json")));
             }
-            for (var i = 1 + fCount; i <= problemsNumber.numberOfProblems; ++i)
+            for (var i = 1 + fCount; i <= problemsNumber.numberOfProblems - 1; ++i)
             {
                 request = new HttpRequestMessage(HttpMethod.Get, "problem?problem_id=" + i);
                 using var problemResponse = await Policy
