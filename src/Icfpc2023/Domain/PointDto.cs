@@ -1,4 +1,4 @@
-namespace Icfpc2023.Utils;
+namespace Icfpc2023.Domain;
 
 public record PointDto(double X, double Y)
 {

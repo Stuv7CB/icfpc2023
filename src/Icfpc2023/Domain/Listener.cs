@@ -1,4 +1,4 @@
-namespace Icfpc2023.Utils;
+namespace Icfpc2023.Domain;
 
 public class Listener
 {
@@ -15,27 +15,20 @@ public class Listener
 
     public IDictionary<Instrument, Taste> Tastes { get; }
 
-    public double GetHappiness(IReadOnlyCollection<Musician> musicians)
+    public double GetHappinessForMusician(Musician musician, IReadOnlyCollection<Musician> musicians)
     {
-        var happiness = 0d;
+        var isBlocked = musicians.Where(m => m.Id != musician.Id)
+            .Aggregate(false, (s, m) => s || m.DoesBlocks(musician, this));
 
-        foreach (var musician in musicians)
+        if (isBlocked)
         {
-            var isBlocked = musicians.Where(m => m.Id != musician.Id)
-                .Aggregate(false, (s, m) => s || m.DoesBlocks(musician, this));
-
-            if (isBlocked)
-            {
-                continue;
-            }
-
-            var vector = musician.Position - Position;
-
-            var distance = vector * vector;
-
-            happiness += Math.Ceiling(1000000 * Tastes[musician.Instrument].Value / distance);
+            return 0d;
         }
 
-        return happiness;
+        var vector = musician.Position - Position;
+
+        var distance = vector * vector;
+
+        return Math.Ceiling(1000000 * Tastes[musician.Instrument].Value / distance);
     }
 }

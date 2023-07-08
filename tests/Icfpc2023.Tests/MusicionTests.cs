@@ -1,5 +1,5 @@
 using FluentAssertions;
-using Icfpc2023.Utils;
+using Icfpc2023.Domain;
 
 namespace Icfpc2023.Tests;
 

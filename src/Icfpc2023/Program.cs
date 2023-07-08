@@ -1,5 +1,5 @@
 ﻿using Icfpc2023.Api;
-using Icfpc2023.Utils;
+using Icfpc2023.Domain;
 using ShellProgressBar;
 
 namespace Icfpc2023;
@@ -25,18 +25,28 @@ internal static class Program
             problems.Count,
             $"Processing");
 
-        var result = await Task.WhenAll(problems.Select(async (problem, i) => await ProcessProblem(
-                problem,
+        using var semaphore = new SemaphoreSlim(10);
+
+        var result = await Task.WhenAll(problems.Zip(Enumerable.Range(1, int.MaxValue))
+            .Skip(55)
+            .Select(async problem => await ProcessProblem(
+                problem.First,
                 apiClient,
-                i + 1,
-                pBar))
+                problem.Second,
+                pBar,
+                semaphore))
             .ToArray());
         render.setSolution(result.ElementAt(renderProblemId - 1).Placements);
     }
 
-    private static async Task<(double Score, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar)
+    private static async Task<(double Score, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar, SemaphoreSlim semaphore)
     {
-        var numberOfInstruments = problem.Musicians.Max() + 1;
+        try
+        {
+            await Task.Yield();
+            await semaphore.WaitAsync();
+
+            var numberOfInstruments = problem.Musicians.Max() + 1;
 
         var instruments = Enumerable.Range(0, (int)numberOfInstruments)
             .Select(i => new Instrument((uint)i))
@@ -81,7 +91,7 @@ internal static class Program
                         Value = kv.t
                     }))).ToArray();
 
-        var calculator = new ScoreCalculator();
+        var calculator = new ScoreCalculator(problemId, scene, listeners);
 
         var temperature = 1000d;
         var step = 10d;
@@ -110,5 +120,10 @@ internal static class Program
         pBar.Tick();
 
         return (score, placement);
+        }
+        finally
+        {
+            semaphore.Release();
+        }
     }
 }
