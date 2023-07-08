@@ -9,22 +9,22 @@ public class ScoreCalculator
     {
         foreach (var musician in musicians)
         {
-            if (musician.Position.X >= scene.BottomLeft.X + scene.Width - 10)
+            if (musician.Position.X > scene.BottomLeft.X + scene.Width - 10)
             {
                 return double.MinValue;
             }
 
-            if (musician.Position.X <= scene.BottomLeft.X + 10)
+            if (musician.Position.X < scene.BottomLeft.X + 10)
             {
                 return double.MinValue;
             }
 
-            if (musician.Position.Y >= scene.BottomLeft.Y + scene.Height - 10)
+            if (musician.Position.Y > scene.BottomLeft.Y + scene.Height - 10)
             {
                 return double.MinValue;
             }
 
-            if (musician.Position.Y <= scene.BottomLeft.Y +  10)
+            if (musician.Position.Y < scene.BottomLeft.Y +  10)
             {
                 return double.MinValue;
             }
@@ -32,13 +32,13 @@ public class ScoreCalculator
             foreach (var otherMusician in musicians.Where(m => m.Id != musician.Id))
             {
                 var vector = otherMusician.Position - musician.Position;
-                if (Math.Sqrt(vector * vector) <= 10)
+                if (Math.Sqrt(vector * vector) < 10)
                 {
                     return double.MinValue;
                 }
             }
         }
 
-        return listeners.Aggregate(0d, (i, listener) => i + listener.GetHappiness(musicians));
+        return listeners.AsParallel().Select(l => l.GetHappiness(musicians)).Aggregate(0d, (i, happiness) => i + happiness);
     }
 }
