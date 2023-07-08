@@ -52,6 +52,7 @@ L                                        - toggle legend";
     {
         lock(_lock)
         {
+            _connections.Clear();
             _problemId = problemId;
             _problem = problem;
             _currentProblemLabel.DisplayedString = _problemId.ToString() + "/" + _totalProblemsCount.ToString();
