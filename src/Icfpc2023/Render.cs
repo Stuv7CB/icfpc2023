@@ -13,6 +13,7 @@ WASD/Arrows                     - movement
 Shift                                  - faster movement
 Q/E                                   - zoom
 LMB/RMB                          - show/hide connections for musician
+C                                - hide all connections 
 hold MMB                         - show coords
 U                                       - submit solutions
 Esc                                     - close app
@@ -127,6 +128,7 @@ L                                        - toggle legend";
                 case Keyboard.Key.E: zoom = 0.95f; break;
                 case Keyboard.Key.Q: zoom = 1.05f; break;
                 case Keyboard.Key.L: legend^= true; break;
+                case Keyboard.Key.C: connections.Clear(); break;
             }
             
         };
