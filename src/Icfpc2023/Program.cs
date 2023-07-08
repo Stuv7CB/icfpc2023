@@ -19,12 +19,15 @@ internal static class Program
             problems.Count,
             $"Processing");
 
-        await Parallel.ForEachAsync(problems.Zip(Enumerable.Range(1, int.MaxValue))
-                .Select(x => x),
-            async (p, _) => await ProcessProblem(p.First, apiClient, p.Second, pBar));
+        var result = await Task.WhenAll(problems.Select(async (problem, i) => await ProcessProblem(
+                problem,
+                apiClient,
+                i + 1,
+                pBar))
+            .ToArray());
     }
 
-    private static async Task ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar)
+    private static async Task<(double Score, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar)
     {
         var numberOfInstruments = problem.Musicians.Max() + 1;
 
@@ -86,16 +89,19 @@ internal static class Program
 
         Console.WriteLine($"[{problemId}] Resulting score is {score}");
 
-
-        await apiClient.Submit((uint)problemId, new Placements
+        var placement = new Placements
         {
             PlacementsList = musicians.Select(m => new Coords
             {
                 X = m.Position.X,
                 Y = m.Position.Y
             }).ToList()
-        });
+        };
+
+        await apiClient.Submit((uint)problemId, placement);
 
         pBar.Tick();
+
+        return (score, placement);
     }
 }
