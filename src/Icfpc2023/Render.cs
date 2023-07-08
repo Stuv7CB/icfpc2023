@@ -40,7 +40,11 @@ L                               - toggle legend";
         for (var i = 0; i < placements.PlacementsList.Count; ++i)
         {
             var cir = new CircleShape(5.0f);
-            cir.FillColor = Color.White;
+            var instrument = problem.Musicians.ElementAt(i);
+            cir.FillColor = new Color((byte)(30 * ((instrument / 54) % 9)),
+                                      (byte)(30 * ((instrument / 6) % 9)),
+                                      (byte)(105 + 30 * (instrument % 6)),
+                                        255);
             cir.Position = new Vector2f(placements.PlacementsList[i].X, placements.PlacementsList[i].Y); 
             musicians.Add(cir);
         }
