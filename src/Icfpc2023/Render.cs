@@ -31,7 +31,7 @@ L                                        - toggle legend";
     {
         mut.WaitOne();
         _problem = problem;
-        room.FillColor = Color.Green;
+        room.FillColor = Color.Magenta;
         room.Size = new Vector2f((float)problem.RoomWidth, (float)problem.RoomHeight);
         stage.FillColor = Color.Red;
         stage.Size = new Vector2f((float)problem.StageWidth, (float)problem.StageHeight);
