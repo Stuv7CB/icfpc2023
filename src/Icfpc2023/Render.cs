@@ -25,6 +25,7 @@ L                                        - toggle legend";
     private RectangleShape stage = new RectangleShape();
     private List<CircleShape> attendees = new List<CircleShape>();
     private List<CircleShape> musicians = new List<CircleShape>();
+    private List<CircleShape> pillars = new List<CircleShape>();
     private Api.Problem? _problem;
     private Dictionary<int,VertexArray> connections = new Dictionary<int,VertexArray>();
 
@@ -44,6 +45,15 @@ L                                        - toggle legend";
             cir.FillColor = Color.White;
             cir.Position = new Vector2f((float)attendee.X - cir.Radius, (float)attendee.Y - cir.Radius); 
             attendees.Add(cir);
+        }
+        pillars.Clear();
+        foreach (var pillar in problem.Pillars)
+        {
+            var cir = new CircleShape((float)pillar.Radius);
+            cir.FillColor = new Color(100, 100, 100, 255);
+            cir.Position = new Vector2f((float)pillar.Center.ElementAt(0) - cir.Radius,
+                                        (float)pillar.Center.ElementAt(1) - cir.Radius); 
+            pillars.Add(cir);
         }
         mut.ReleaseMutex();
     }
@@ -203,6 +213,10 @@ L                                        - toggle legend";
             foreach (var musician in musicians)
             {
                 window.Draw(musician); 
+            }
+            foreach (var pillar in pillars)
+            {
+                window.Draw(pillar); 
             }
             window.SetView(hudView);
             if (legend)
