@@ -8,122 +8,13 @@ internal static class Program
 {
     private static async Task Main(string[] args)
     {
-        var random = new Random();
-
         var apiToken = Environment.GetEnvironmentVariable("API_TOKEN");
         using var apiClient = new ApiClient(apiToken);
         var problems = await apiClient.GetProblemsDefinition();
 
-         var render = new Render();
-        var renderTrhead = new Thread(new ThreadStart(render.run));
-        renderTrhead.Start();
-
-        var renderProblemId = 1;
-        render.setProblem(problems.ElementAt(renderProblemId - 1));
-
-        using var pBar = new ProgressBar(
-            problems.Count,
-            $"Processing");
-
-        using var semaphore = new SemaphoreSlim(10);
-
-        var result = await Task.WhenAll(problems.Zip(Enumerable.Range(1, int.MaxValue))
-            .Skip(55)
-            .Select(async problem => await ProcessProblem(
-                problem.First,
-                apiClient,
-                problem.Second,
-                pBar,
-                semaphore))
-            .ToArray());
-        render.setSolution(result.ElementAt(renderProblemId - 1).Placements);
-    }
-
-    private static async Task<(double Score, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar, SemaphoreSlim semaphore)
-    {
-        try
-        {
-            await Task.Yield();
-            await semaphore.WaitAsync();
-
-            var numberOfInstruments = problem.Musicians.Max() + 1;
-
-        var instruments = Enumerable.Range(0, (int)numberOfInstruments)
-            .Select(i => new Instrument((uint)i))
-            .ToDictionary(i => i.Id);
-
-        var musicians = problem.Musicians
-            .Select((instrument, i) => new Musician(i, instruments[instrument]))
-            .ToArray();
-
-        var scene = new Scene
-        {
-            Height = problem.StageHeight,
-            Width = problem.StageWidth,
-            BottomLeft = new PointDto
-            (
-                problem.StageBottomLeft.First(),
-                problem.StageBottomLeft.Last()
-            )
-        };
-
-        var xMiddle = scene.BottomLeft.X + scene.Width / 2;
-        var yMiddle = scene.BottomLeft.Y + scene.Height / 2;
-
-        foreach (var musician in musicians)
-        {
-            musician.AdjustPosition(new PointDto
-            (
-                xMiddle,
-                yMiddle
-            ));
-        }
-
-        var listeners = problem.Attendees
-            .Select((a, i) => new Listener(
-                i,
-                new PointDto(a.X, a.Y),
-                a.Tastes.Select((t, j) => (t, j)).ToDictionary(
-                    kv => instruments[(uint)kv.j],
-                    kv => new Taste
-                    {
-                        Instrument = instruments[(uint)kv.j],
-                        Value = kv.t
-                    }))).ToArray();
-
-        var calculator = new ScoreCalculator(problemId, scene, listeners);
-
-        var temperature = 1000d;
-        var step = 10d;
-
-        using var childBar = pBar.Spawn(
-            (int)(temperature / step),
-            $"[{problemId}] Start processing");
-
-        var solver = new Solver(temperature, step);
-        var progress = new Progress<double>(_ => childBar.Tick());
-        var score = solver.Solve(calculator, scene, listeners, musicians, progress);
-
-        Console.WriteLine($"[{problemId}] Resulting score is {score}");
-
-        var placement = new Placements
-        {
-            PlacementsList = musicians.Select(m => new Coords
-            {
-                X = m.Position.X,
-                Y = m.Position.Y
-            }).ToList()
-        };
-
-        await apiClient.Submit((uint)problemId, placement);
-
-        pBar.Tick();
-
-        return (score, placement);
-        }
-        finally
-        {
-            semaphore.Release();
-        }
+        var render = new Render(problems.Count);
+        render.setProblem(problems.ElementAt(1), 1);
+        var app = new App(problems, render, apiClient);
+        render.run();
     }
 }
