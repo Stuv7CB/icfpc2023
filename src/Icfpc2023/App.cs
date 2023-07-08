@@ -4,30 +4,31 @@ using ShellProgressBar;
 
 namespace Icfpc2023;
 
-public class App
+public class App : IDisposable
 {
-    private List<Problem> _problems;
+    private readonly List<Problem> _problems;
     private Dictionary<int, Placements> _solutions = new();
-    private Render _render;
-    private ApiClient _apiClient;
+    private readonly Render _render;
+    private readonly ApiClient _apiClient;
     private Thread _calculationTrhead;
     private Thread _inputThread;
     private int _renderProblemId = 1;
-    private static object _lock = new();
+    private readonly object _lock = new();
 
     private const double _temperature = 1000d;
-    private const double _step = 10d;   
+    private const double _step = 10d;
+
     public App(List<Problem> problems, Render render, ApiClient apiClient)
     {
         _problems = problems;
         _render = render;
         _apiClient = apiClient;
-        _calculationTrhead = new(new ThreadStart(calculate));
-        _inputThread = new(new ThreadStart(input));
+        _calculationTrhead = new(new ThreadStart(Calculate));
+        _inputThread = new(new ThreadStart(Input));
         _calculationTrhead.Start();
         _inputThread.Start();
     }
-    private void input()
+    private void Input()
     {
         while (true)
         {
@@ -36,7 +37,7 @@ public class App
             lock(_lock)
             {
                 _renderProblemId = Int32.Parse(input);
-                _render.setProblem(_problems.ElementAt(_renderProblemId), _renderProblemId);
+                _render.setProblem(_problems.ElementAt(_renderProblemId - 1), _renderProblemId);
                 if (_solutions.ContainsKey(_renderProblemId))
                 {
                     _render.setSolution(_solutions[_renderProblemId]);
@@ -45,7 +46,7 @@ public class App
         }
 
     }
-    private async void calculate()
+    private async void Calculate()
     {
         using var pBar = new ProgressBar(
             _problems.Count,
@@ -67,7 +68,7 @@ public class App
             {
                 _solutions.Add(solution.problemId, solution.Placements);
             }
-            _render.setSolution(result.ElementAt(_renderProblemId - 1).Placements);
+            _render.setSolution(_solutions[_renderProblemId]);
         }
     }
     private static async Task<(int problemId, Placements Placements)> ProcessProblem(Problem problem, ApiClient apiClient, int problemId, ProgressBar pBar, SemaphoreSlim semaphore)
@@ -153,5 +154,9 @@ public class App
         {
             semaphore.Release();
         }
+    }
+    public void Dispose()
+    {
+        _apiClient.Dispose();
     }
 }
