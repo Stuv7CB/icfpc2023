@@ -49,7 +49,7 @@ internal static class Program
             {
                 var problemIndex = int.Parse(commandString[2..]);
 
-                await problemWriter.WriteAsync((problemIndex, problems.ElementAt(problemIndex)), cancellationToken);
+                await problemWriter.WriteAsync((problemIndex, problems.ElementAt(problemIndex - 1)), cancellationToken);
 
                 if (app.TryGetSolution(problemIndex, out var solution))
                 {
@@ -63,7 +63,7 @@ internal static class Program
             {
                 var problemIndex = int.Parse(commandString[2..]);
 
-                await problemWriter.WriteAsync((problemIndex, problems.ElementAt(problemIndex)), cancellationToken);
+                await problemWriter.WriteAsync((problemIndex, problems.ElementAt(problemIndex - 1)), cancellationToken);
 
                 await app.Calculate(problemIndex, false);
 
@@ -77,7 +77,7 @@ internal static class Program
             {
                 var problemIndex = int.Parse(commandString[2..]);
 
-                await problemWriter.WriteAsync((problemIndex, problems.ElementAt(problemIndex)), cancellationToken);
+                await problemWriter.WriteAsync((problemIndex, problems.ElementAt(problemIndex - 1)), cancellationToken);
 
                 await app.Calculate(problemIndex, true);
 
