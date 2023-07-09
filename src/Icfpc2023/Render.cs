@@ -51,6 +51,7 @@ L                                        - toggle legend";
 
     public void SetProblem(Api.Problem problem, int problemId)
     {
+        _musicians.Clear();
         _connections.Clear();
         _problemId = problemId;
         _problem = problem;
@@ -81,7 +82,6 @@ L                                        - toggle legend";
 
     public void SetSolution(Api.Placements placements)
     {
-        _musicians.Clear();
         for (var i = 0; i < placements.PlacementsList.Count; ++i)
         {
             var cir = new CircleShape(5.0f);
