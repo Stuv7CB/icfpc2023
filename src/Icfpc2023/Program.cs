@@ -1,20 +1,36 @@
-﻿using Icfpc2023.Api;
-using Icfpc2023.Domain;
-using ShellProgressBar;
+﻿using System.Threading.Channels;
+using Icfpc2023.Api;
 
 namespace Icfpc2023;
 
 internal static class Program
 {
-    private static async Task Main(string[] args)
+    private static void Main(string[] args)
     {
         var apiToken = Environment.GetEnvironmentVariable("API_TOKEN");
         using var apiClient = new ApiClient(apiToken);
-        var problems = await apiClient.GetProblemsDefinition();
+        var problems = apiClient.GetProblemsDefinition().GetAwaiter().GetResult();
+
+        var problemChannel = Channel.CreateUnbounded<(int, Problem)>();
+        var solutionChannel = Channel.CreateUnbounded<Placements>();
+        using var cancellationTokenSource = new CancellationTokenSource();
+
+        var thread = new Thread(() => Calculate(problemChannel.Writer, solutionChannel.Writer, apiClient, problems, cancellationTokenSource.Token));
+        thread.Start();
 
         var render = new Render(problems.Count);
-        render.setProblem(problems.ElementAt(0), 1);
-        using var app = new App(problems, render, apiClient);
-        render.run();
+        render.Run(problemChannel.Reader, solutionChannel.Reader);
+        cancellationTokenSource.Cancel();
+        thread.Join();
+    }
+
+    private static async Task Calculate(ChannelWriter<(int, Problem)> problemWriter, ChannelWriter<Placements> solutionWriter, ApiClient apiClient, IReadOnlyCollection<Problem> problems, CancellationToken cancellationToken)
+    {
+        using var app = new App(problems, apiClient);
+        while (true)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            await app.Calculate(problemWriter, solutionWriter);
+        }
     }
 }
