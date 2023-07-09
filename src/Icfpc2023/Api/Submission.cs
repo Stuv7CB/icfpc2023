@@ -14,6 +14,9 @@ namespace Icfpc2023.Api
     {
         [JsonPropertyName("placements")]
         public List<Coords> PlacementsList { get; set; }
+
+        [JsonPropertyName("volumes")]
+        public List<double> Volumes { get; set; } 
     }
     public class Submission
     {
