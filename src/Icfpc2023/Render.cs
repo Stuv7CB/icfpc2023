@@ -20,21 +20,20 @@ U                                       - submit solutions
 Esc                                     - close app
 L                                        - toggle legend";
 
-    private readonly object _lock = new object();
-    private RenderWindow _window = new(new VideoMode(1024, 768), "icfpc2023");
-    private View _mainView = new(new Vector2f(0, 0), new Vector2f(1024f, 768f));
-    private View _hudView = new(new Vector2f(0, 0), new Vector2f(1024f, 768f));
-    private Font _openSans = new("./assets/fonts/OpenSans-Regular.ttf");
-    private Text _currentProblemLabel = new();
-    private RectangleShape _room = new();
-    private RectangleShape _stage = new();
-    private List<CircleShape> _attendees = new();
-    private List<CircleShape> _musicians = new();
-    private List<CircleShape> _pillars = new();
+    private readonly RenderWindow _window = new(new VideoMode(1024, 768), "icfpc2023");
+    private readonly View _mainView = new(new Vector2f(0, 0), new Vector2f(1024f, 768f));
+    private readonly View _hudView = new(new Vector2f(0, 0), new Vector2f(1024f, 768f));
+    private readonly Font _openSans = new("./assets/fonts/OpenSans-Regular.ttf");
+    private readonly Text _currentProblemLabel = new();
+    private readonly RectangleShape _room = new();
+    private readonly RectangleShape _stage = new();
+    private readonly List<CircleShape> _attendees = new();
+    private readonly List<CircleShape> _musicians = new();
+    private readonly List<CircleShape> _pillars = new();
     private Api.Problem? _problem;
     private int _problemId = 0;
-    private int _totalProblemsCount = 0;
-    private Dictionary<int, VertexArray> _connections = new();
+    private readonly int _totalProblemsCount = 0;
+    private readonly Dictionary<int, VertexArray> _connections = new();
 
     public Render(int totalProblemsCount)
     {
@@ -52,54 +51,48 @@ L                                        - toggle legend";
 
     public void SetProblem(Api.Problem problem, int problemId)
     {
-        lock (_lock)
+        _connections.Clear();
+        _problemId = problemId;
+        _problem = problem;
+        _currentProblemLabel.DisplayedString = _problemId.ToString() + "/" + _totalProblemsCount.ToString();
+        _room.Size = new((float)problem.RoomWidth, (float)problem.RoomHeight);
+        _stage.Size = new((float)problem.StageWidth, (float)problem.StageHeight);
+        _stage.Position = new((float)problem.StageBottomLeft.ElementAt(0),
+            (float)problem.StageBottomLeft.ElementAt(1));
+        _attendees.Clear();
+        foreach (var attendee in problem.Attendees)
         {
-            _connections.Clear();
-            _problemId = problemId;
-            _problem = problem;
-            _currentProblemLabel.DisplayedString = _problemId.ToString() + "/" + _totalProblemsCount.ToString();
-            _room.Size = new((float)problem.RoomWidth, (float)problem.RoomHeight);
-            _stage.Size = new((float)problem.StageWidth, (float)problem.StageHeight);
-            _stage.Position = new((float)problem.StageBottomLeft.ElementAt(0),
-                (float)problem.StageBottomLeft.ElementAt(1));
-            _attendees.Clear();
-            foreach (var attendee in problem.Attendees)
-            {
-                var cir = new CircleShape(1.0f);
-                cir.FillColor = Color.White;
-                cir.Position = new((float)attendee.X - cir.Radius, (float)attendee.Y - cir.Radius);
-                _attendees.Add(cir);
-            }
+            var cir = new CircleShape(1.0f);
+            cir.FillColor = Color.White;
+            cir.Position = new((float)attendee.X - cir.Radius, (float)attendee.Y - cir.Radius);
+            _attendees.Add(cir);
+        }
 
-            _pillars.Clear();
-            foreach (var pillar in problem.Pillars)
-            {
-                var cir = new CircleShape((float)pillar.Radius);
-                cir.FillColor = new(100, 100, 100, 255);
-                cir.Position = new((float)pillar.Center.ElementAt(0) - cir.Radius,
-                    (float)pillar.Center.ElementAt(1) - cir.Radius);
-                _pillars.Add(cir);
-            }
+        _pillars.Clear();
+        foreach (var pillar in problem.Pillars)
+        {
+            var cir = new CircleShape((float)pillar.Radius);
+            cir.FillColor = new(100, 100, 100, 255);
+            cir.Position = new((float)pillar.Center.ElementAt(0) - cir.Radius,
+                (float)pillar.Center.ElementAt(1) - cir.Radius);
+            _pillars.Add(cir);
         }
     }
 
     public void SetSolution(Api.Placements placements)
     {
-        lock (_lock)
+        _musicians.Clear();
+        for (var i = 0; i < placements.PlacementsList.Count; ++i)
         {
-            _musicians.Clear();
-            for (var i = 0; i < placements.PlacementsList.Count; ++i)
-            {
-                var cir = new CircleShape(5.0f);
-                var instrument = _problem.Musicians.ElementAt(i);
-                cir.FillColor = new((byte)(30 * ((instrument / 54) % 9)),
-                    (byte)(30 * ((instrument / 6) % 9)),
-                    (byte)(105 + 30 * (instrument % 6)),
-                    255);
-                cir.Position = new((float)placements.PlacementsList[i].X - cir.Radius,
-                    (float)placements.PlacementsList[i].Y - cir.Radius);
-                _musicians.Add(cir);
-            }
+            var cir = new CircleShape(5.0f);
+            var instrument = _problem.Musicians.ElementAt(i);
+            cir.FillColor = new((byte)(30 * ((instrument / 54) % 9)),
+                (byte)(30 * ((instrument / 6) % 9)),
+                (byte)(105 + 30 * (instrument % 6)),
+                255);
+            cir.Position = new((float)placements.PlacementsList[i].X - cir.Radius,
+                (float)placements.PlacementsList[i].Y - cir.Radius);
+            _musicians.Add(cir);
         }
     }
 
@@ -268,49 +261,46 @@ L                                        - toggle legend";
                 SetSolution(solution);
             }
 
-            lock (_lock)
+            _window.DispatchEvents();
+            _window.Clear();
+            _mainView.Move(movement * shift);
+            _mainView.Zoom(zoom);
+            _window.SetView(_mainView);
+            _window.Draw(_room);
+            _window.Draw(_stage);
+            foreach (var musicianConnections in _connections)
             {
-                _window.DispatchEvents();
-                _window.Clear();
-                _mainView.Move(movement * shift);
-                _mainView.Zoom(zoom);
-                _window.SetView(_mainView);
-                _window.Draw(_room);
-                _window.Draw(_stage);
-                foreach (var musicianConnections in _connections)
-                {
-                    _window.Draw(musicianConnections.Value);
-                }
-
-                foreach (var attendee in _attendees)
-                {
-                    _window.Draw(attendee);
-                }
-
-                foreach (var musician in _musicians)
-                {
-                    _window.Draw(musician);
-                }
-
-                foreach (var pillar in _pillars)
-                {
-                    _window.Draw(pillar);
-                }
-
-                _window.SetView(_hudView);
-                if (legend)
-                {
-                    _window.Draw(helpLabel);
-                }
-
-                if (showCoords)
-                {
-                    _window.Draw(coordsLabel);
-                }
-
-                _window.Draw(_currentProblemLabel);
-                _window.Display();
+                _window.Draw(musicianConnections.Value);
             }
+
+            foreach (var attendee in _attendees)
+            {
+                _window.Draw(attendee);
+            }
+
+            foreach (var musician in _musicians)
+            {
+                _window.Draw(musician);
+            }
+
+            foreach (var pillar in _pillars)
+            {
+                _window.Draw(pillar);
+            }
+
+            _window.SetView(_hudView);
+            if (legend)
+            {
+                _window.Draw(helpLabel);
+            }
+
+            if (showCoords)
+            {
+                _window.Draw(coordsLabel);
+            }
+
+            _window.Draw(_currentProblemLabel);
+            _window.Display();
         }
     }
 }
