@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Threading.Channels;
 using Icfpc2023.Api;
 using Icfpc2023.Domain;
@@ -14,42 +15,52 @@ public class App : IDisposable
     private const double _temperature = 1000d;
     private const double _step = 10d;
 
+    private ConcurrentDictionary<int, Placements> _solved = new();
+
     public App(IReadOnlyCollection<Problem> problems, ApiClient apiClient)
     {
         _problems = problems;
         _apiClient = apiClient;
     }
 
-    public async Task Calculate(ChannelWriter<(int, Problem)> problemWriter, ChannelWriter<Placements> solutionWriter)
+    public bool TryGetSolution(int problemId, out Placements? solution)
     {
-        Console.WriteLine("Input next problem to solve or 0 for all");
-        var problemNumber = int.Parse(Console.ReadLine());
-
-        var problemsToSolve = (problemNumber == 0
-            ? _problems.Zip(Enumerable.Range(1, int.MaxValue))
-            : _problems.Zip(Enumerable.Range(1, int.MaxValue)).Skip(problemNumber - 1).Take(1)).ToArray();
-
-        if (problemNumber != 0)
+        if (_solved.TryGetValue(problemId, out var sol))
         {
-            await problemWriter.WriteAsync((problemNumber, _problems.ElementAt(problemNumber - 1)));
+            solution = sol;
+
+            return true;
+        }
+
+        solution = default;
+        return false;
+    }
+
+    public async Task Calculate(int problemNumber, bool force)
+    {
+        var problemsToSolve = ((problemNumber == 0
+            ? _problems.Zip(Enumerable.Range(1, int.MaxValue))
+            : _problems.Zip(Enumerable.Range(1, int.MaxValue))
+                .Skip(problemNumber - 1)
+                .Take(1)))
+            .Where(p => force || !_solved.ContainsKey(p.Second)).ToArray();
+
+        if (problemNumber != 0 && !force && _solved.TryGetValue(problemNumber, out var solution))
+        {
+            return;
         }
 
         using var pBar = new ProgressBar(
             problemsToSolve.Length,
             $"Processing");
 
-        var result = await Task.WhenAll(problemsToSolve
+        await Task.WhenAll(problemsToSolve
             .Select(async problem => await ProcessProblem(
                 problem.First,
                 _apiClient,
                 problem.Second,
                 pBar))
             .ToArray());
-
-        if (problemNumber != 0)
-        {
-            await solutionWriter.WriteAsync(result.Single().Placements);
-        }
     }
 
     private async Task<(int problemId, Placements Placements)> ProcessProblem(
@@ -131,6 +142,8 @@ public class App : IDisposable
                     Y = m.Position.Y
                 }).ToList()
             };
+
+            _solved[problemId] = placement;
 
             await apiClient.Submit((uint)problemId, placement);
 
